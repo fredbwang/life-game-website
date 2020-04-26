@@ -1,125 +1,185 @@
 $(document).ready(function () {
-    let PIXELSIZE = 2;
-    let REPEATSX = 20;
-    let REPEATSY = 15;
-  
-    let canvas = $("#mycanvas");
-    let ctx = canvas.get(0).getContext("2d");
-    let canvasWidth = DIMENSION * REPEATSX * PIXELSIZE;
-    let canvasHeight = DIMENSION * REPEATSY * PIXELSIZE;
-    let selectedBox = null;
-  
-    canvas.attr('width', canvasWidth);
-    canvas.attr('height', canvasHeight);
-  
-    // Initialize Firebase
-    // let firebaseConfig = {
-    //   apiKey: "AIzaSyA8o_azigp1r55Kf4-ksJnffY7o3WT9ZhQ",
-    //   authDomain: "bigcanvas-f7fef.firebaseapp.com",
-    //   databaseURL: "https://bigcanvas-f7fef.firebaseio.com",
-    //   projectId: "bigcanvas-f7fef",
-    //   storageBucket: "bigcanvas-f7fef.appspot.com",
-    //   messagingSenderId: "429765921665",
-    //   appId: "1:429765921665:web:8d5199605dbda353383680"
-    // };
 
-    // firebase.initializeApp(firebaseConfig);
-    // let db = firebase.firestore();
+  initMatrix();
+
+  initCanvas();
+
+});
+
+function initMatrix() {
+  matrix = new Array(DIMENSION);
   
-    // db.collection('app').onSnapshot(function (grid) {
-    //   for(let change of grid.docChanges()) {
-    //     if (!change.doc) continue;
-    //     let key = change.doc.id;
-    //     let data = change.doc.data().data;
-    //     if (key == 'grid') continue;
-  
-    //     let coord = key.split(",");
-    //     let json = data;
-    //     let pixelData = JSON.parse(json);
-    //     clearGrid(coord);
-    //     for (let subkey in pixelData) {
-    //       let subcoord = subkey.split(",");
-    //       let color = pixelData[subkey];
-    //   if(color == '#2') color = '#222244'; // hack to save some space on encoding.
-  
-    //       fillPixel(coord, subcoord, color);
-    //     }
-    //   }
-    // });
-  
-    // Draw grid.
-    ctx.strokeStyle = '#cccccc';
-    for (let i = 0; i < DIMENSION * REPEATSX; ++i) {
-      if (i % DIMENSION != 0) { continue; }
-      x = i * PIXELSIZE;
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvasHeight);
-      ctx.stroke();
-  
-      y = i * PIXELSIZE;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvasWidth, y);
-      ctx.stroke();
+  for (let i = 0; i < matrix.length; i++) {
+    matrix[i] = new Array(DIMENSION);
+  }
+
+  for (let i = 0; i < matrix.length; i++) {
+    for (let j = 0; j < matrix[0].length; j++) {
+      matrix[i][j] = 0;
     }
+  }
+}
+
+function initCanvas() {
+  let canvas = $("#mycanvas");
+  let canvasWidth = canvas.width();
+  let canvasHeight = canvas.height();
+  let PIXELSIZE = canvasWidth / DIMENSION;
+  let enabled = true;
+
+  clearCanvas(canvas);
+
+  canvas.on('mousemove touchmove touchstart mousedown', mouseFill);
   
-    // Canvas Behaviors.
-    canvas.click(function (e) {
-      selectBox(e);
-    });
-    canvas.mousemove(function (e) {
-      let pixel = [Math.floor(e.offsetX / (PIXELSIZE * DIMENSION)), Math.floor(e.offsetY / (PIXELSIZE * DIMENSION))];
-      if (pixel[0] < 0 || pixel[1] < 0 ||
-        pixel[0] >= REPEATSX || pixel[1] >= REPEATSY) {
-        return;
+  function mouseFill(e) {
+    
+    if (GAME_ON) return;
+    
+    e.preventDefault(); // Disables scrolling for touch events.
+
+    var touchstart = e.type === 'touchstart' || e.type === 'touchmove';
+    e = touchstart ? e.originalEvent : e;
+    var rect = $("#mycanvas");
+    var offsetX = touchstart ? e.targetTouches[0].pageX - rect.offset().left : e.offsetX;
+    var offsetY = touchstart ? e.targetTouches[0].pageY - rect.offset().top : e.offsetY;
+
+    if (!enabled) return;
+    if (e.which != 1 && !touchstart) return;
+
+    pixel = [Math.floor(offsetX / PIXELSIZE), Math.floor(offsetY / PIXELSIZE)];
+    window.fillPixel(canvas, pixel);
+  }
+}
+
+function clearCanvas(canvas) {
+  let context = canvas.get(0).getContext("2d");
+  let canvasWidth = canvas.width();
+  let canvasHeight = canvas.height();
+
+  context.clearRect(0, 0, canvasWidth, canvasHeight);
+
+  context.strokeStyle = 'rgba(0,0,0,0.1)';
+  for (let i = 0; i < DIMENSION; ++i) {
+    x = Math.floor(i * canvasWidth / DIMENSION);
+    context.beginPath();
+    context.moveTo(x, 0);
+    context.lineTo(x, canvasHeight);
+    context.stroke();
+
+    y = Math.floor(i * canvasHeight / DIMENSION);
+    context.beginPath();
+    context.moveTo(0, y);
+    context.lineTo(canvasWidth, y);
+    context.stroke();
+  }
+}
+
+window.save = function() {
+
+  this.console.log("Saving current state...");
+
+  currentMatrix = matrix;
+
+  // $.post('draw.php?submit=1', data, function (rsp) {
+  //   $('body').append(rsp);
+  //   $("#saveButton").attr('disabled', false);
+  // });
+}
+
+window.reset = function() {
+  GAME_ON = false;
+  initMatrix();
+  clearCanvas($("#mycanvas"));
+}
+
+window.start = function() {
+  GAME_ON = true;
+  
+  setInterval(() => {
+    if (GAME_ON) {
+      runGameRound();
+    }
+  }, 100);
+
+  function runGameRound() {
+    let t0 = performance.now();
+    let canvas = $("#mycanvas");
+    
+    let dirx = [0, 1, 0, -1, 1, 1, -1, -1];
+    let diry = [1, 0, -1, 0, 1, -1, -1, 1];
+    for (let i = 0; i < matrix.length; i++) {
+      for (let j = 0; j < matrix[0].length; j++) {
+
+        // count filled neighbors
+        let count = 0;
+        for (let k = 0; k < 8; k++) {
+          let x = i + dirx[k];
+          let y = j + diry[k];
+          if (x >= 0 && x < matrix.length && y >= 0 && y < matrix[0].length && Math.abs(matrix[x][y]) == 1) {
+            count++;
+          }
+        }
+
+        // if no neighbor: too lonely, die
+        // 2 neighbors: do nothing
+        // 3 neighbors: grow
+        // 4 or more neighbors: too crowded, die
+        if ((matrix[i][j] == 1) && (count < 2 || count > 3)) {
+          // -1 signifies the cell is now dead but originally was live.
+          matrix[i][j] = -1;
+        }
+        if (matrix[i][j] == 0 && count == 3) {
+          // 2 signifies the cell is now live but was originally dead.
+          matrix[i][j] = 2;
+        } 
       }
-      if (!selectedBox) {
-        selectedBox = $("<div id=selectedBox></div");
-        selectedBox.css({ width: DIMENSION * PIXELSIZE - 2, height: DIMENSION * PIXELSIZE - 2 });
-        $("#mycanvasWrapper").prepend(selectedBox);
+    }
+
+    for (let i = 0; i < matrix.length; i++) {
+      for (let j = 0; j < matrix[0].length; j++) {
+        window.fillPixel(canvas, [i, j], matrix[i][j] > 0);
       }
-      selectedBox.css({
-        left: pixel[0] * PIXELSIZE * DIMENSION + 1,
-        top: pixel[1] * PIXELSIZE * DIMENSION
-      });
-    });
-  
-    let SELECTED = 0;
-    function selectBox(e) {
-      if (SELECTED) return;
-      SELECTED = 1;
-  
-      let pixel = [Math.floor(e.offsetX / (PIXELSIZE * DIMENSION)), Math.floor(e.offsetY / (PIXELSIZE * DIMENSION))];
-      window.location = "draw.php?x=" + pixel[0] + "&y=" + pixel[1];
     }
+    console.log(performance.now() - t0);
+  }
+}
+
+window.stop = function() {
+  GAME_ON = false;
+}
+
+window.deepCopy = function(input) {
+
+  temp = new Array(DIMENSION);
   
-    function clearGrid(coord) {
-      let coordX = parseInt(coord[0]);
-      let coordY = parseInt(coord[1]);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(coordX * DIMENSION * PIXELSIZE, coordY * DIMENSION * PIXELSIZE,
-        PIXELSIZE * DIMENSION, PIXELSIZE * DIMENSION);
-      ctx.fillStyle = '#cccccc';
-      ctx.strokeRect(coordX * DIMENSION * PIXELSIZE, coordY * DIMENSION * PIXELSIZE,
-        PIXELSIZE * DIMENSION, PIXELSIZE * DIMENSION);
+  for (let i = 0; i < temp.length; i++) {
+    temp[i] = new Array(DIMENSION);
+  }
+
+  for (let i = 0; i < temp.length; i++) {
+    for (let j = 0; j < temp[0].length; j++) {
+      temp[i][j] = input[i][j];
     }
+  }
+
+  return temp;
+}
+
+window.fillPixel = function(canvas, pixel, shouldFill = true) {
+
+  let context = canvas.get(0).getContext("2d");
+  let selectedColor = '#222244';
+  let PIXELSIZE = canvas.width() / DIMENSION;
+
+  if (shouldFill) {
+    // fill canvans grid
+    context.fillStyle = selectedColor;
+    context.fillRect(pixel[0] * PIXELSIZE, pixel[1] * PIXELSIZE, PIXELSIZE - 1, PIXELSIZE - 1);
+  } else {
+    // clear canvas grid
+    context.clearRect(pixel[0] * PIXELSIZE, pixel[1] * PIXELSIZE, PIXELSIZE - 1, PIXELSIZE - 1);
+  }  
   
-    function fillPixel(coord, subcoord, color) {
-      let coordX = parseInt(coord[0]);
-      let coordY = parseInt(coord[1]);
-      let subCoordX = parseInt(subcoord[0]);
-      let subCoordY = parseInt(subcoord[1]);
-      if (coordX < 0 || coordY < 0 ||
-        coordX >= REPEATSX || coordY >= REPEATSY ||
-        subCoordX < 0 || subCoordX >= DIMENSION ||
-        subCoordY < 0 || subCoordY >= DIMENSION) {
-        return;
-      }
-  
-      ctx.fillStyle = color;
-      let x = (coordX * DIMENSION + subCoordX) * PIXELSIZE;
-      let y = (coordY * DIMENSION + subCoordY) * PIXELSIZE;
-      ctx.fillRect(x, y, PIXELSIZE, PIXELSIZE);
-    }
-  });
+  // write to matrix
+  matrix[pixel[0]][pixel[1]] = shouldFill ? 1 : 0;
+}

@@ -2,50 +2,34 @@
 require_once 'global.php';
 
 print <<<EOF
-
 <!doctype html>
 <html>
-<!-- The core Firebase JS SDK is always required and must be listed first -->
-<script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-firestore.js"></script>
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-<script src="index.js?version=$VERSION"></script>
-
 <style>
-    body {
-        background-color: #f0f0f0;
-        margin: 16px;
-        font-family: Arial, Helvetica, sans-serif;
-    }
-
-    #mycanvas {
-        border: 1px #000 solid;
-        background-color: #fff;
-        cursor: pointer;
-    }
-
-    #mycanvasWrapper {
-        position: relative;
-    }
-
-    #selectedBox {
-        border: 1px rgba(0, 50, 100, 0.5) solid;
-        background-color: rgba(0, 50, 100, 0.25);
-        position: absolute;
-        pointer-events: none;
-    }
 </style>
-<script>
-    let DIMENSION = $DIMENSION;
-</script>
 
 <body>
-    <div id=mycanvasWrapper>
-        <canvas id=mycanvas></canvas>
-    </div>
-
-</body>
-
+    <script>
+        let DIMENSION = $DIMENSION;
+        let matrix;
+        let GAME_ON = false;
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="index.js?version=$VERSION"></script>
+    <link rel="stylesheet" type="text/css" href="index.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <body>
+        <div>
+            <canvas id=mycanvas width=500 height=500></canvas>
+        </div>
+        
+        <div id=button-block class="mx-auto">
+            <input id=save-button class="btn btn-outline-primary" type=submit value=Save onclick="save()">
+            <input id=reset-button class="btn btn-outline-primary" type=submit value=Reset onclick="reset()">
+            <input id=start-button class="btn btn-outline-primary" type=submit value=Start onclick="start()">
+            <input id=stop-button class="btn btn-outline-primary" type=submit value=Stop onclick="stop()">
+        </div>
+        
+        <div id=spinner></div>
+    </body>
 </html>
 EOF;
