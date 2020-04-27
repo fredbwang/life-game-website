@@ -7,10 +7,10 @@ $(document).ready(function () {
 });
 
 function initMatrix() {
-  matrix = new Array(DIMENSION);
+  matrix = new Array(DIMENSION_HEIGHT);
   
   for (let i = 0; i < matrix.length; i++) {
-    matrix[i] = new Array(DIMENSION);
+    matrix[i] = new Array(DIMENSION_WIDTH);
   }
 
   for (let i = 0; i < matrix.length; i++) {
@@ -24,7 +24,7 @@ function initCanvas() {
   let canvas = $("#mycanvas");
   let canvasWidth = canvas.width();
   let canvasHeight = canvas.height();
-  let PIXELSIZE = canvasWidth / DIMENSION;
+  let PIXELSIZE = canvasWidth / DIMENSION_WIDTH;
   let enabled = true;
 
   clearCanvas(canvas);
@@ -47,7 +47,7 @@ function initCanvas() {
     if (e.which != 1 && !touchstart) return;
 
     pixel = [Math.floor(offsetX / PIXELSIZE), Math.floor(offsetY / PIXELSIZE)];
-    // matrix[pixel[0]][pixel[1]] = 1;
+
     window.fillPixel(canvas, pixel);
   }
 }
@@ -60,14 +60,16 @@ function clearCanvas(canvas) {
   context.clearRect(0, 0, canvasWidth, canvasHeight);
 
   context.strokeStyle = 'rgba(0,0,0,0.1)';
-  for (let i = 0; i < DIMENSION; ++i) {
-    x = Math.floor(i * canvasWidth / DIMENSION);
+  for (let i = 0; i < DIMENSION_WIDTH; ++i) {
+    x = Math.floor(i * canvasWidth / DIMENSION_WIDTH);
     context.beginPath();
     context.moveTo(x, 0);
     context.lineTo(x, canvasHeight);
     context.stroke();
+  }
 
-    y = Math.floor(i * canvasHeight / DIMENSION);
+  for (let i = 0; i < DIMENSION_HEIGHT; ++i) {
+    y = Math.floor(i * canvasHeight / DIMENSION_HEIGHT);
     context.beginPath();
     context.moveTo(0, y);
     context.lineTo(canvasWidth, y);
@@ -140,13 +142,15 @@ window.start = function() {
     for (let i = 0; i < matrix.length; i++) {
       for (let j = 0; j < matrix[0].length; j++) {
         if (matrix[i][j] == -1) {
-          window.fillPixel(canvas, [i, j], false);
+          window.fillPixel(canvas, [j, i], false);
         } else if (matrix[i][j] == 2) {
-          window.fillPixel(canvas, [i, j], true);
+          window.fillPixel(canvas, [j, i], true);
         }
       }
     }
-    console.log(performance.now() - t0);
+    let t1 = performance.now();
+
+    console.log(t1 - t0);
   }
 }
 
@@ -156,10 +160,10 @@ window.stop = function() {
 
 window.deepCopy = function(input) {
 
-  temp = new Array(DIMENSION);
+  temp = new Array(DIMENSION_WIDTH);
   
   for (let i = 0; i < temp.length; i++) {
-    temp[i] = new Array(DIMENSION);
+    temp[i] = new Array(DIMENSION_HEIGHT);
   }
 
   for (let i = 0; i < temp.length; i++) {
@@ -175,7 +179,7 @@ window.fillPixel = function(canvas, pixel, shouldFill = true) {
 
   let context = canvas.get(0).getContext("2d");
   let selectedColor = '#222244';
-  let PIXELSIZE = canvas.width() / DIMENSION;
+  let PIXELSIZE = canvas.width() / DIMENSION_WIDTH;
 
   if (shouldFill) {
     // fill canvans grid
@@ -184,8 +188,8 @@ window.fillPixel = function(canvas, pixel, shouldFill = true) {
   } else {
     // clear canvas grid
     context.clearRect(pixel[0] * PIXELSIZE, pixel[1] * PIXELSIZE, PIXELSIZE - 1, PIXELSIZE - 1);
-  }  
+  }
   
   // write to matrix
-  matrix[pixel[0]][pixel[1]] = shouldFill ? 1 : 0;
+  matrix[pixel[1]][pixel[0]] = shouldFill ? 1 : 0;
 }

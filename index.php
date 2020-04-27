@@ -1,6 +1,8 @@
 <?php
 require_once 'global.php';
 
+$timesTen = function($v){return 10*$v;};
+
 print <<<EOF
 <!doctype html>
 <html>
@@ -9,7 +11,8 @@ print <<<EOF
 
 <body>
     <script>
-        let DIMENSION = $DIMENSION;
+        let DIMENSION_HEIGHT = $DIMENSION_HEIGHT;
+        let DIMENSION_WIDTH = $DIMENSION_WIDTH;
         let matrix;
         let GAME_ON = false;
     </script>
@@ -20,9 +23,8 @@ print <<<EOF
     <body>
         <h1 class="display-4 text-center"> Game of Life </h1>
         <div>
-            <canvas id=mycanvas width=500 height=500></canvas>
-        </div>
-        
+            <canvas id=mycanvas width={$timesTen($DIMENSION_WIDTH)} height={$timesTen($DIMENSION_HEIGHT)} ></canvas>
+        </div>    
         <div id=button-block class="mx-auto">
             <input id=save-button class="btn btn-outline-dark" type=submit value=Save onclick="save()">
             <input id=reset-button class="btn btn-outline-dark" type=submit value=Reset onclick="reset()">
