@@ -47,6 +47,7 @@ function initCanvas() {
     if (e.which != 1 && !touchstart) return;
 
     pixel = [Math.floor(offsetX / PIXELSIZE), Math.floor(offsetY / PIXELSIZE)];
+    // matrix[pixel[0]][pixel[1]] = 1;
     window.fillPixel(canvas, pixel);
   }
 }
@@ -99,14 +100,14 @@ window.start = function() {
     if (GAME_ON) {
       runGameRound();
     }
-  }, 100);
+  }, 20);
 
   function runGameRound() {
     let t0 = performance.now();
     let canvas = $("#mycanvas");
     
-    let dirx = [0, 1, 0, -1, 1, 1, -1, -1];
-    let diry = [1, 0, -1, 0, 1, -1, -1, 1];
+    let dirx = [0, 0, 1, 1, 1, -1, -1, -1];
+    let diry = [1, -1, -1, 0, 1, -1, 0, 1];
     for (let i = 0; i < matrix.length; i++) {
       for (let j = 0; j < matrix[0].length; j++) {
 
@@ -117,6 +118,7 @@ window.start = function() {
           let y = j + diry[k];
           if (x >= 0 && x < matrix.length && y >= 0 && y < matrix[0].length && Math.abs(matrix[x][y]) == 1) {
             count++;
+            if (count > 3) break;
           }
         }
 
@@ -137,7 +139,11 @@ window.start = function() {
 
     for (let i = 0; i < matrix.length; i++) {
       for (let j = 0; j < matrix[0].length; j++) {
-        window.fillPixel(canvas, [i, j], matrix[i][j] > 0);
+        if (matrix[i][j] == -1) {
+          window.fillPixel(canvas, [i, j], false);
+        } else if (matrix[i][j] == 2) {
+          window.fillPixel(canvas, [i, j], true);
+        }
       }
     }
     console.log(performance.now() - t0);
