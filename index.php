@@ -18,15 +18,16 @@ print <<<EOF
     <link rel="stylesheet" type="text/css" href="index.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <body>
+        <h1 class="display-4 text-center"> Game of Life </h1>
         <div>
             <canvas id=mycanvas width=500 height=500></canvas>
         </div>
         
         <div id=button-block class="mx-auto">
-            <input id=save-button class="btn btn-outline-primary" type=submit value=Save onclick="save()">
-            <input id=reset-button class="btn btn-outline-primary" type=submit value=Reset onclick="reset()">
-            <input id=start-button class="btn btn-outline-primary" type=submit value=Start onclick="start()">
-            <input id=stop-button class="btn btn-outline-primary" type=submit value=Stop onclick="stop()">
+            <input id=save-button class="btn btn-outline-dark" type=submit value=Save onclick="save()">
+            <input id=reset-button class="btn btn-outline-dark" type=submit value=Reset onclick="reset()">
+            <input id=start-button class="btn btn-outline-dark" type=submit value=Start onclick="start()">
+            <input id=stop-button class="btn btn-outline-dark" type=submit value=Stop onclick="stop()">
         </div>
         
         <div id=spinner></div>
